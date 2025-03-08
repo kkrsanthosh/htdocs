@@ -665,6 +665,7 @@ class WebController extends Controller
       /*---============== SANTHOSH =============---*/
       // Check if it's a valid URL
       if (filter_var($param, FILTER_VALIDATE_URL)) {
+
         // Get business user id
         $business_user_id = Business::where('business_website_url', 'like', "%{$param}%")->first()?->user_id;
 

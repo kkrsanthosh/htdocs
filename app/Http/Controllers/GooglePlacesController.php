@@ -7,33 +7,44 @@ use Illuminate\Support\Facades\Http;
 
 class GooglePlacesController extends Controller
 {
-    public function getBusinessInfo(Request $request)
-    {
-        $apiKey = env('GOOGLE_PLACES_API_KEY');
-        $placeId = $request->query('place_id'); // Get place_id from query parameter
+  public function getBusinessInfo(Request $request)
+  {
+    $apiKey = env('GOOGLE_PLACES_API_KEY');
+    $placeId = $request->query('place_id'); // Get place_id from query parameter
 
-        if (!$placeId) {
-            return response()->json(['error' => 'place_id is required'], 400);
-        }
-
-        $detailsUrl = "https://maps.googleapis.com/maps/api/place/details/json?placeid={$placeId}&key={$apiKey}";
-        $response = Http::get($detailsUrl);
-        return response()->json($response->json());
+    if (!$placeId) {
+      return response()->json(['error' => 'place_id is required'], 400);
     }
 
-    public function getPlaceId(Request $request)
-    {
-        $request->validate([
-          'website' => ['required', 'regex:/^((https?:\/\/)?([\w-]+\.)+[\w-]{2,})$/'],
-        ]);
+    $detailsUrl = "https://maps.googleapis.com/maps/api/place/details/json?placeid={$placeId}&key={$apiKey}";
+    $response = Http::get($detailsUrl);
+    return response()->json($response->json());
+  }
 
-        $apiKey = env('GOOGLE_PLACES_API_KEY');
-        $website = urlencode($request->input('website'));
+  public function getPlaceId(Request $request)
+  {
+    $request->validate([
+      'website' => ['required', 'regex:/^((https?:\/\/)?([\w-]+\.)+[\w-]{2,})$/'],
+    ]);
 
-        $searchUrl = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input={$website}&inputtype=textquery&fields=place_id&key={$apiKey}";
+    $apiKey = env('GOOGLE_PLACES_API_KEY');
+    $website = urlencode($request->input('website'));
 
-        $response = Http::get($searchUrl);
-        return response()->json($response->json());
+    $searchUrl = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input={$website}&inputtype=textquery&fields=place_id&key={$apiKey}";
+
+    $response = Http::get($searchUrl);
+
+    $data = $response->json();
+
+    // Extract the place_id if it exists
+    if (isset($data['candidates'][0]['place_id'])) {
+      $placeId = $data['candidates'][0]['place_id'];
+      $detailsUrl = "https://maps.googleapis.com/maps/api/place/details/json?placeid={$placeId}&key={$apiKey}";
+      $response = Http::get($detailsUrl);
+      return response()->json($response->json());
+    } else {
+      return response()->json(['error' => 'place_id is required'], 400);
     }
+  }
 }
 /*---============== SANTHOSH =============---*/

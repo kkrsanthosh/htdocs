@@ -299,7 +299,10 @@
             const selectedSlug = serviceInput.value;
 
             if (selectedSlug != undefined) {
-              window.location.href = `/b/${selectedSlug.replace(/^https?:\/\//, '')}`;
+              if (!/^https?:\/\//i.test(selectedSlug)) {
+                var url = "https://" + selectedSlug; // Prepend "https://" if missing
+              }
+              window.location.href = `/b/${url}`;
             } else {
               const errorMessage = document.getElementById('error-message');
               errorMessage.innerHTML = `{{ __('Please enter a valid business website URL.') }}`;
