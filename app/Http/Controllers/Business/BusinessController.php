@@ -66,7 +66,6 @@ class BusinessController extends Controller
             return redirect()->route('business.plans.index');
         }
 
-
         $business = Business::where('user_id', $user->user_id)->where('status', '>=', 0)->get();
         $business_categories = BusinessCategory::where('status', '>=', 0)->get();
 
