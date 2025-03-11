@@ -104,7 +104,6 @@ class WebController extends Controller
       $returnValues = compact('plans', 'config', 'currency', 'setting', 'pages', 'blogs', 'business_categories', 'business_categories_array', 'businesses', 'business_array', 'meta_title');
       return view("website.index", $returnValues);
       /*---============== SANTHOSH =============--->*/
-
     } else {
       abort(404);
     }
@@ -621,7 +620,7 @@ class WebController extends Controller
 
   /*---============== SANTHOSH =============---*/
   // Business page
-   public function business($param = null)
+  public function business($param = null)
   {
 
     if (!$param) {
@@ -688,28 +687,35 @@ class WebController extends Controller
         // Plan details
         $planDetails = json_decode($user->plan_details, true);
 
-        // Get plan features
-        $planFeatures = is_string($planDetails['plan_features'])
-          ? json_decode($planDetails['plan_features'], true)
-          : $planDetails['plan_features'];
+        /*---============== SANTHOSH =============---*/
+        if ($planDetails) {
+          // Get plan features
+          $planFeatures = is_string($planDetails['plan_features'])
+            ? json_decode($planDetails['plan_features'], true)
+            : $planDetails['plan_features'];
 
-        // Get no of bookings
-        $noOfBookings = (int) $planFeatures['no_of_bookings'];
+          // Get no of bookings
+          $noOfBookings = (int) $planFeatures['no_of_bookings'];
 
-        // Get plan start date
-        $plan_start_date = Carbon::parse($planDetails['plan_start_date'])->format('Y-m-d');
+          // Get plan start date
+          $plan_start_date = Carbon::parse($planDetails['plan_start_date'])->format('Y-m-d');
 
-        // Get plan end date
-        $plan_end_date = Carbon::parse($planDetails['plan_end_date'])->format('Y-m-d');
+          // Get plan end date
+          $plan_end_date = Carbon::parse($planDetails['plan_end_date'])->format('Y-m-d');
 
-        // Get successed bookings
-        $Successed_bookings = Booking::where('business_id', $business_id)->where('booking_date', '>=', $plan_start_date)->where('booking_date', '<=', $plan_end_date)->where('status', 1)->count();
+          // Get successed bookings
+          $Successed_bookings = Booking::where('business_id', $business_id)->where('booking_date', '>=', $plan_start_date)->where('booking_date', '<=', $plan_end_date)->where('status', 1)->count();
 
-        if ($noOfBookings > $Successed_bookings) {
-          $is_booking_available = true;
-        } else {
-          $is_booking_available = false;
+          if ($noOfBookings > $Successed_bookings) {
+            $is_booking_available = true;
+          } else {
+            $is_booking_available = false;
+          }
         }
+        else {
+          $is_booking_available = true;
+        }
+        /*---============== SANTHOSH =============---*/
 
         // Get setting
         $setting = Setting::where('status', 1)->first();
@@ -731,18 +737,24 @@ class WebController extends Controller
         //Currency
         $currency = Currency::where('iso_code', $config['1']->config_value)->first();
 
-        // Return values
-        $returnValues = compact('config', 'setting', 'business_services', 'business_employees', 'business', 'is_booking_available', 'currency');
+        /*---============== SANTHOSH =============---*/
+        // if ($planDetails) {
+          // Return values
+          $returnValues = compact('config', 'setting', 'business_services', 'business_employees', 'business', 'is_booking_available', 'currency');
+        // }
+        // else {
+        //   // Return values
+        //   $returnValues = compact('config', 'setting', 'business_services', 'business_employees', 'business', 'is_booking_available', 'currency');
+        // }
 
         return view("website.pages.business.index", $returnValues);
 
 
-      /*---============== SANTHOSH =============---*/
+        /*---============== SANTHOSH =============---*/
       } else {
         return redirect()->route('getPlaceId', ['website' => $business_website_url]);
       }
       /*---============== SANTHOSH =============---*/
-
     } else {
       abort(404);
     }

@@ -2,6 +2,7 @@
 /*---============== SANTHOSH =============---*/
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Business\BusinessController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Models\Business;
@@ -41,45 +42,76 @@ class GooglePlacesController extends Controller
     if (isset($data['candidates'][0]['place_id'])) {
       $placeId = $data['candidates'][0]['place_id'];
       $detailsUrl = "https://maps.googleapis.com/maps/api/place/details/json?placeid={$placeId}&key={$apiKey}";
-      $response = Http::get($detailsUrl);
-      // return response()->json($response->json());
+
+      $response1 = Http::get($detailsUrl);
 
 
-      $json = response()->json($response->json()); // Replace with actual JSON string
-      $data = json_decode($json, true);
+      // Extract data from the response
+      $result = $response1->json()['result'] ?? [];
 
-      $result = $data['result'] ?? [];
 
       $fields = [
-          'name' => $result['name'] ?? null,
-          'website' => $result['website'] ?? null,
-          'international_phone_number' => $result['international_phone_number'] ?? null,
-          'formatted_address' => $result['formatted_address'] ?? null,
-          'country' => null,
-          'administrative_area_level_1' => null,
-          'administrative_area_level_3' => null,
+          'business_name' => $result['name'] ?? null,
+          'business_website_url' => $result['website'] ?? null,
+          'business_phone' => $result['international_phone_number'] ?? null,
+          'business_address' => $result['formatted_address'] ?? null,
+          'business_country' => null,
+          'business_state' => null,
+          'business_city' => null,
           'business_category_id' => null,
       ];
 
       foreach ($result['address_components'] ?? [] as $component) {
           if (in_array('country', $component['types'])) {
-              $fields['country'] = $component['long_name'];
+              $fields['business_country'] = $component['long_name'];
           }
           if (in_array('administrative_area_level_1', $component['types'])) {
-              $fields['administrative_area_level_1'] = $component['long_name'];
+              $fields['business_state'] = $component['long_name'];
           }
           if (in_array('administrative_area_level_3', $component['types'])) {
-              $fields['administrative_area_level_3'] = $component['long_name'];
+              $fields['business_city'] = $component['long_name'];
           }
       }
 
-      // return response()->json($fields);
 
-      // Convert array to a Request object
-      $request = new Request($fields);
+      if (!empty($result['photos'])) {
+        $photoReference = $result['photos'][0]['photo_reference']; // Get first image
+        $coverImageUrl = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=$photoReference&key=$apiKey";
+      } else {
+        $domain = $request->getHost();
+        $coverImageUrl = $domain."/images/business/cover_images/default-image.jpg"; // Fallback image
+      }
 
-      // Call store function
-      $this->store($request);
+      $fields['business_cover_image_url'] = $coverImageUrl;
+
+      // dd($fields);
+
+      // // return response()->json($fields);
+
+      // // Convert array to a Request object
+      // $request = new Request($fields);
+
+      // // Call store function
+      // $this->store($request);
+
+
+      // // Convert place details array to a request object
+      // $businessRequest = new Request($fields);
+
+      // // Extract data from the response
+      // $placeDetails = $response1->json()['result'] ?? [];
+
+      // dd($placeDetails);
+
+      // Convert the response into a request object
+      $businessRequest = new Request($fields);
+
+
+      // $businessRequest = new Request($json);
+
+      // Call saveBusiness function in BusinessController
+      $businessController = new BusinessController();
+      return $businessController->saveBusiness($businessRequest);
 
 
     } else {
@@ -87,16 +119,16 @@ class GooglePlacesController extends Controller
     }
   }
 
-  public function store(Request $request)
-  {
-      $place = new Business();
-      $business = $place->savePlaceDetails($request->all());
+  // public function store(Request $request)
+  // {
+  //     $place = new Business();
+  //     $business = $place->savePlaceDetails($request->all());
 
-      return response()->json([
-          'message' => 'Business saved successfully!',
-          'business' => $business
-      ], 201);
-  }
+  //     return response()->json([
+  //         'message' => 'Business saved successfully!',
+  //         'business' => $business
+  //     ], 201);
+  // }
 
 }
 /*---============== SANTHOSH =============---*/

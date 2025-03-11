@@ -296,13 +296,55 @@
           document.getElementById('find-button').addEventListener('click', function() {
 
             /*---============== SANTHOSH =============---*/
-            const selectedSlug = serviceInput.value;
+
+            let selectedSlug = ""; // Declare outside
+
+            if(serviceInput.value) {
+              selectedSlug = serviceInput.value;
+            }
+            else {
+              // selectedSlug = $("#service-input").data("slug");
+
+              // Get the input element
+let inputElement = document.getElementById("service-input");
+
+// Get the 'data-slug' attribute value
+selectedSlug = inputElement.getAttribute("data-slug");
+            }
+// alert(selectedSlug);
 
             if (selectedSlug != undefined) {
-              if (!/^https?:\/\//i.test(selectedSlug)) {
-                var url = "https://" + selectedSlug; // Prepend "https://" if missing
-              }
+
+              // if (!/^https?:\/\//i.test(selectedSlug)) {
+              //   var url = "https://" + selectedSlug; // Prepend "https://" if missing
+              // }
+
+              let url = '';
+
+
+
+    if (!selectedSlug.startsWith("https://www.")) {
+        // Ensure "https://www." is added correctly
+        if (selectedSlug.startsWith("www.")) {
+            url = "https://" + url;
+        } else if (selectedSlug.startsWith("http://")) {
+            url = selectedSlug.replace("http://", "https://www.");
+        } else if (selectedSlug.startsWith("https://")) {
+            url = selectedSlug.replace("https://", "https://www.");
+        } else {
+            url = "https://www." + selectedSlug;
+        }
+    }
+    else {
+      url = selectedSlug;
+    }
+
+    url = url.replace(/\/$/, '');
+
+      alert(`/b/${url}`);
+
               window.location.href = `/b/${url}`;
+
             } else {
               const errorMessage = document.getElementById('error-message');
               errorMessage.innerHTML = `{{ __('Please enter a valid business website URL.') }}`;
