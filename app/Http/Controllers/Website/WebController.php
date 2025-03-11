@@ -104,6 +104,7 @@ class WebController extends Controller
       $returnValues = compact('plans', 'config', 'currency', 'setting', 'pages', 'blogs', 'business_categories', 'business_categories_array', 'businesses', 'business_array', 'meta_title');
       return view("website.index", $returnValues);
       /*---============== SANTHOSH =============--->*/
+
     } else {
       abort(404);
     }
@@ -677,7 +678,6 @@ class WebController extends Controller
         $business_id = $param;
       }
 
-
       if ($business_id) {
         /*---============== SANTHOSH =============---*/
 
@@ -711,8 +711,7 @@ class WebController extends Controller
           } else {
             $is_booking_available = false;
           }
-        }
-        else {
+        } else {
           $is_booking_available = true;
         }
         /*---============== SANTHOSH =============---*/
@@ -738,23 +737,15 @@ class WebController extends Controller
         $currency = Currency::where('iso_code', $config['1']->config_value)->first();
 
         /*---============== SANTHOSH =============---*/
-        // if ($planDetails) {
-          // Return values
-          $returnValues = compact('config', 'setting', 'business_services', 'business_employees', 'business', 'is_booking_available', 'currency');
-        // }
-        // else {
-        //   // Return values
-        //   $returnValues = compact('config', 'setting', 'business_services', 'business_employees', 'business', 'is_booking_available', 'currency');
-        // }
+        // Return values
+        $returnValues = compact('config', 'setting', 'business_services', 'business_employees', 'business', 'is_booking_available', 'currency');
 
         return view("website.pages.business.index", $returnValues);
-
-
-        /*---============== SANTHOSH =============---*/
       } else {
         return redirect()->route('getPlaceId', ['website' => $business_website_url]);
       }
       /*---============== SANTHOSH =============---*/
+
     } else {
       abort(404);
     }

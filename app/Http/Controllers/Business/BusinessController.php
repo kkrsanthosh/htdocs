@@ -96,15 +96,10 @@ class BusinessController extends Controller
   // Save Business
   public function saveBusiness(Request $request)
   {
-    // dd($request);
-    // dd($request->business_name);
-
-    // $queryParams = $request->query(); // Returns an associative array of all query parameters
-
-
     $user = Auth::user();
     $config = Configuration::get();
 
+    /*---============== SANTHOSH =============---*/
     if ($request->business_category_id) {
 
       // Validation
@@ -132,9 +127,7 @@ class BusinessController extends Controller
         'business_city' => 'required|string|max:255',
       ]);
     }
-
-    // dd($request->business_name);
-    // dd($validator->fails());
+    /*---============== SANTHOSH =============---*/
 
     // Validation error
     if ($validator->fails()) {
@@ -152,6 +145,8 @@ class BusinessController extends Controller
     $business->business_category_id = $request->business_category_id ?? 1;
     /*---============== SANTHOSH =============---*/
 
+    dd($request->hasFile('business_cover_image_url'));
+
     // Check if a cover image is uploaded
     if ($request->hasFile('business_cover_image_url')) {
       $file = $request->file('business_cover_image_url');
@@ -165,12 +160,6 @@ class BusinessController extends Controller
       // Move the uploaded file to the destination path
       $file->move(public_path($uploadPath), $newCoverImage);
     }
-
-    /*---============== SANTHOSH =============---*/
-    // else {
-    //   $business->business_cover_image_url = $coverImageUrl;
-    // }
-    /*---============== SANTHOSH =============---*/
 
     // Handle the business logo upload
     if ($request->hasFile('business_logo_url')) {
@@ -201,10 +190,7 @@ class BusinessController extends Controller
     $business->business_city = $request->business_city;
 
     $business->tax_number = $request->business_tax_number;
-
     $business->status = 1;
-
-    // dd($business->business_state);
 
     $business->save();
 

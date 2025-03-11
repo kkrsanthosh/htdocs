@@ -35,7 +35,6 @@ class GooglePlacesController extends Controller
     $searchUrl = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input={$website}&inputtype=textquery&fields=place_id&key={$apiKey}";
 
     $response = Http::get($searchUrl);
-
     $data = $response->json();
 
     // Extract the place_id if it exists
@@ -44,91 +43,61 @@ class GooglePlacesController extends Controller
       $detailsUrl = "https://maps.googleapis.com/maps/api/place/details/json?placeid={$placeId}&key={$apiKey}";
 
       $response1 = Http::get($detailsUrl);
-
-
       // Extract data from the response
       $result = $response1->json()['result'] ?? [];
 
-
       $fields = [
-          'business_name' => $result['name'] ?? null,
-          'business_website_url' => $result['website'] ?? null,
-          'business_phone' => $result['international_phone_number'] ?? null,
-          'business_address' => $result['formatted_address'] ?? null,
-          'business_country' => null,
-          'business_state' => null,
-          'business_city' => null,
-          'business_category_id' => null,
+        'business_name' => $result['name'] ?? null,
+        'business_website_url' => $result['website'] ?? null,
+        'business_phone' => $result['international_phone_number'] ?? null,
+        'business_address' => $result['formatted_address'] ?? null,
+        'business_country' => null,
+        'business_state' => null,
+        'business_city' => null,
+        'business_category_id' => null,
       ];
 
       foreach ($result['address_components'] ?? [] as $component) {
-          if (in_array('country', $component['types'])) {
-              $fields['business_country'] = $component['long_name'];
-          }
-          if (in_array('administrative_area_level_1', $component['types'])) {
-              $fields['business_state'] = $component['long_name'];
-          }
-          if (in_array('administrative_area_level_3', $component['types'])) {
-              $fields['business_city'] = $component['long_name'];
-          }
+        if (in_array('country', $component['types'])) {
+          $fields['business_country'] = $component['long_name'];
+        }
+        if (in_array('administrative_area_level_1', $component['types'])) {
+          $fields['business_state'] = $component['long_name'];
+        }
+        if (in_array('administrative_area_level_3', $component['types'])) {
+          $fields['business_city'] = $component['long_name'];
+        }
       }
+
 
 
       if (!empty($result['photos'])) {
-        $photoReference = $result['photos'][0]['photo_reference']; // Get first image
+        // $photoReference = $result['photos'][0]['photo_reference']; // Get first image
+
+        $largestImage = collect($result['photos'])->sortByDesc('width')->first();
+$photoReference = $largestImage['photo_reference'] ?? null;
+
+// dd($largestImage);
+
         $coverImageUrl = "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=$photoReference&key=$apiKey";
+
+// dd($coverImageUrl);
+
       } else {
         $domain = $request->getHost();
-        $coverImageUrl = $domain."/images/business/cover_images/default-image.jpg"; // Fallback image
+        $coverImageUrl = $domain . "/images/business/cover_images/default-image.jpg"; // Fallback image
       }
 
       $fields['business_cover_image_url'] = $coverImageUrl;
-
-      // dd($fields);
-
-      // // return response()->json($fields);
-
-      // // Convert array to a Request object
-      // $request = new Request($fields);
-
-      // // Call store function
-      // $this->store($request);
-
-
-      // // Convert place details array to a request object
-      // $businessRequest = new Request($fields);
-
-      // // Extract data from the response
-      // $placeDetails = $response1->json()['result'] ?? [];
-
-      // dd($placeDetails);
-
       // Convert the response into a request object
       $businessRequest = new Request($fields);
-
-
-      // $businessRequest = new Request($json);
 
       // Call saveBusiness function in BusinessController
       $businessController = new BusinessController();
       return $businessController->saveBusiness($businessRequest);
-
-
     } else {
       return response()->json(['error' => 'place_id is required'], 400);
     }
   }
-
-  // public function store(Request $request)
-  // {
-  //     $place = new Business();
-  //     $business = $place->savePlaceDetails($request->all());
-
-  //     return response()->json([
-  //         'message' => 'Business saved successfully!',
-  //         'business' => $business
-  //     ], 201);
-  // }
-
 }
 /*---============== SANTHOSH =============---*/
